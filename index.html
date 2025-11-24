@@ -19,7 +19,6 @@
             --text-muted: #6b7c8a;
         }
         body { font-family: 'Poppins', 'Cormorant Garamond', serif; background: var(--bg-white); color: var(--text-dark); overflow-x: hidden; scroll-behavior: smooth; font-weight: 400; letter-spacing: 0.5px; }
-        .lang-switch { position: fixed; top: 20px; right: 20px; z-index: 1000; background: white; padding: 8px 20px; border-radius: 25px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); cursor: pointer; font-size: 14px; }
         .hero {
             min-height: 100vh;
             display: flex;
@@ -639,7 +638,16 @@
             letter-spacing: 0.5px;
         }
         .location-details { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
-        .detail-item { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 18px; }
+        .detail-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 12px; 
+            font-size: 22px; 
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 10px 0;
+        }
         .map-container {
             max-width: 450px;
             margin: 0 auto;
@@ -822,7 +830,6 @@
     </style>
 </head>
 <body>
-    <div class="lang-switch" onclick="toggleLanguage()">عربي</div>
     <button class="sound-btn" id="soundBtn" onclick="toggleSound()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -871,7 +878,7 @@
                     <div class="date-details">
                         <div class="month">DECEMBER</div>
                         <div class="year">2025</div>
-                        <div class="time">AT 06:30 PM</div>
+                        <div class="time">AT 07:00 PM</div>
                     </div>
                 </div>
                 <div class="venue-name">Villa 90</div>
@@ -902,11 +909,11 @@
             <h2>Villa 90</h2>
             <p class="location-city">Egypt</p>
             <div class="location-details">
-                <div class="detail-item"><span>📅</span><span>December 24, 2025</span></div>
-                <div class="detail-item"><span>🕡</span><span>6:30 PM</span></div>
+                <div class="detail-item"><span>December 24, 2025</span></div>
+                <div class="detail-item"><span>🕡</span><span>7:00 PM</span></div>
             </div>
             <div class="map-container">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3456.0!2d31.0!3d30.0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zVmlsbGEgOTA!5e0!3m2!1sen!2seg!4v1703456789" allowfullscreen="" loading="lazy"></iframe>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3280.86062854526!2d31.0207645!3d30.7699601!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14f7c957217316d3%3A0xfb03d779b572804c!2zVmlsbGEgOTAgLSDZgdmK2YTYpyA5MA!5e1!3m2!1sar!2sit!4v1764024900973!5m2!1sar!2sit" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
         </section>
 
@@ -939,6 +946,7 @@
         <section class="drawings-display-section">
             <h2>Guest Messages</h2>
             <p class="photo-subtitle" style="max-width: 400px;">Messages from our beloved guests</p>
+            <button onclick="clearAllMessages()" style="display: none; padding: 8px 20px; background: #e74c3c; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 12px; margin: 10px 0;" id="adminClearBtn">🗑️ Clear All (Admin)</button>
             <div class="drawings-grid" id="drawingsGrid">
                 <!-- Guest messages will appear here automatically -->
                 <div class="no-messages">No messages yet. Be the first to share your wishes! 💕</div>
@@ -1092,7 +1100,6 @@
             }, 800);
         }
         let isArabic = false;
-        function toggleLanguage() { isArabic = !isArabic; document.querySelector('.lang-switch').textContent = isArabic ? 'English' : 'عربي'; }
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false, currentColor = '#000000', brushSize = 5;
@@ -1140,6 +1147,24 @@
             const canvas = document.getElementById('drawingCanvas');
             const senderName = document.getElementById('senderName').value || 'Anonymous';
             
+            // Check if canvas is empty
+            const context = canvas.getContext('2d');
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            let isEmpty = true;
+            
+            for (let i = 0; i < pixels.length; i += 4) {
+                if (pixels[i + 3] !== 0) { // Check alpha channel
+                    isEmpty = false;
+                    break;
+                }
+            }
+            
+            if (isEmpty) {
+                alert('⚠️ Please draw something first! الرجاء الرسم أولاً');
+                return;
+            }
+            
             // Save drawing data
             const drawingData = {
                 image: canvas.toDataURL(),
@@ -1147,37 +1172,72 @@
                 timestamp: new Date().toISOString()
             };
             
-            // Store in localStorage
-            drawings.push(drawingData);
-            localStorage.setItem('engagementDrawings', JSON.stringify(drawings));
+            // Load existing drawings and add new one
+            const existingDrawings = JSON.parse(localStorage.getItem('engagementDrawings') || '[]');
+            existingDrawings.push(drawingData);
             
-            // Display the drawing
+            // Store in localStorage
+            localStorage.setItem('engagementDrawings', JSON.stringify(existingDrawings));
+            console.log('💾 تم حفظ الرسالة. إجمالي الرسائل:', existingDrawings.length);
+            
+            // Update global drawings array
+            drawings = existingDrawings;
+            
+            // Display all drawings
             displayDrawings();
             
-            alert(`Thank you ${senderName}! Your message has been sent to Mohamed & Rawan 💕`);
+            alert(`Thank you ${senderName}! Your message has been saved 💕\nشكراً! تم حفظ رسالتك`);
             clearCanvas();
             document.getElementById('senderName').value = '';
         }
 
         function displayDrawings() {
             const grid = document.getElementById('drawingsGrid');
+            
+            // Load drawings from localStorage
             const storedDrawings = JSON.parse(localStorage.getItem('engagementDrawings') || '[]');
             drawings = storedDrawings;
             
+            console.log('📊 عدد الرسائل المحفوظة:', drawings.length);
+            
             if (drawings.length === 0) {
                 grid.innerHTML = '<div class="no-messages">No messages yet. Be the first to share your wishes! 💕</div>';
+                console.log('⚠️ لا توجد رسائل محفوظة');
                 return;
             }
             
             // Display all drawings in reverse order (newest first)
-            grid.innerHTML = drawings.slice().reverse().map(drawing => `
+            grid.innerHTML = drawings.slice().reverse().map((drawing, index) => `
                 <div class="drawing-card">
                     <img src="${drawing.image}" class="drawing-image" alt="Message from ${drawing.author}">
                     <p class="drawing-author">${drawing.author}</p>
                 </div>
             `).join('');
+            
+            console.log('✅ تم عرض', drawings.length, 'رسالة');
         }
 
+
+        // Clear all messages (Admin function - press Ctrl+Shift+C to show button)
+        function clearAllMessages() {
+            if (confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل؟\nAre you sure you want to delete all messages?')) {
+                localStorage.removeItem('engagementDrawings');
+                drawings = [];
+                displayDrawings();
+                console.log('🗑️ تم مسح جميع الرسائل');
+                alert('✅ All messages cleared!');
+            }
+        }
+        
+        // Show admin button with keyboard shortcut (Ctrl+Shift+C)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                const btn = document.getElementById('adminClearBtn');
+                if (btn) {
+                    btn.style.display = btn.style.display === 'none' ? 'inline-block' : 'none';
+                }
+            }
+        });
 
         // Typewriter effect for invitation text
         function typewriterEffect(element, text, speed = 100) {
