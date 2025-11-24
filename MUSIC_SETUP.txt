@@ -1,0 +1,52 @@
+🎵 MUSIC SETUP INSTRUCTIONS 🎵
+================================
+
+The website is now configured to play a local music file!
+
+STEPS TO ADD MUSIC:
+==================
+
+1. Download your music from YouTube:
+   - Go to: https://www.youtube.com/watch?v=PEC6dITILJ8
+   - Use a YouTube to MP3 converter (like: ytmp3.cc, y2mate.com, or any converter you prefer)
+   - Download the audio as MP3 format
+
+2. Rename the downloaded file:
+   - Change the filename to: music.mp3
+   - Make sure it's exactly "music.mp3" (lowercase, no spaces)
+
+3. Place the file in your project folder:
+   - Put music.mp3 in the same folder as index.html
+   - Your folder should look like this:
+     E:\mr\
+       - index.html
+       - music.mp3  ← ADD THIS FILE
+       - couple.jpg
+       - qrcode.png
+
+4. Open index.html in your browser
+   - The music will automatically load
+   - Click the envelope to open the invitation
+   - Music should start playing automatically!
+
+5. Use the sound button:
+   - Look for the rotating button in the bottom-right corner
+   - Click to pause/play music
+   - The button spins when music is playing
+
+TROUBLESHOOTING:
+===============
+- If music doesn't play, press F12 and check Console for error messages
+- Make sure the file is named exactly "music.mp3"
+- Make sure the file is in the same folder as index.html
+- Try clicking the sound button manually
+
+ALTERNATIVE:
+===========
+If you have a different music file or want to use a different name:
+- Open index.html
+- Find line with: <source src="music.mp3" type="audio/mpeg">
+- Change "music.mp3" to your filename (e.g., "wedding-song.mp3")
+
+Enjoy your beautiful engagement website! 💕
+
