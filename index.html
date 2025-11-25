@@ -706,6 +706,25 @@
         }
         .canvas-btn.clear { background: #f0f0f0; color: var(--text-dark); }
         .canvas-btn.send { background: var(--primary); color: white; }
+        .text-message-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+            margin-top: 15px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .text-message-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(143, 164, 184, 0.3);
+        }
         .name-input {
             width: 100%;
             padding: 15px 25px;
@@ -742,49 +761,6 @@
         .photo-subtitle { color: var(--text-muted); font-size: 16px; margin-bottom: 30px; max-width: 300px; margin-left: auto; margin-right: auto; }
         
         /* Drawings Display Section */
-        .drawings-display-section {
-            padding: 60px 20px;
-            text-align: center;
-            background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
-        }
-        .drawings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            max-width: 1000px;
-            margin: 30px auto 0;
-        }
-        .drawing-card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 5px 20px rgba(143, 164, 184, 0.12);
-            border: 1px solid rgba(143, 164, 184, 0.08);
-            transition: all 0.3s ease;
-        }
-        .drawing-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(143, 164, 184, 0.2);
-        }
-        .drawing-image {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #eee;
-        }
-        .drawing-author {
-            font-family: 'Poppins', sans-serif;
-            font-size: 13px;
-            color: var(--primary);
-            font-weight: 500;
-        }
-        .no-messages {
-            color: var(--text-muted);
-            font-style: italic;
-            font-size: 14px;
-            padding: 40px 20px;
-        }
         .qr-container {
             background: white;
             padding: 40px;
@@ -845,13 +821,13 @@
     <section class="hero" id="heroSection">
         <div class="hero-background"></div>
         <div class="hero-content">
-            <div class="envelope-container" onclick="openEnvelope()">
-                <div class="envelope-text">
-                    <div class="small">YOU ARE</div>
-                    <div class="invited">INVITED</div>
-                </div>
-                <div class="wax-seal">M&R</div>
+        <div class="envelope-container" onclick="openEnvelope()">
+            <div class="envelope-text">
+                <div class="small">YOU ARE</div>
+                <div class="invited">INVITED</div>
             </div>
+            <div class="wax-seal">M&R</div>
+        </div>
             <p class="click-open">Click to open invitation</p>
         </div>
     </section>
@@ -935,21 +911,12 @@
                     <button class="size-btn" data-size="15">Bold</button>
                 </div>
                 <canvas id="drawingCanvas" width="340" height="300"></canvas>
+                <textarea class="text-message-input" id="textMessage" placeholder="Or write your message here... ✍️" rows="3"></textarea>
                 <input type="text" class="name-input" placeholder="Your Name" id="senderName">
                 <div class="canvas-actions">
                     <button class="canvas-btn clear" onclick="clearCanvas()">Clear</button>
                     <button class="canvas-btn send" onclick="sendMessage()">Send 💌</button>
                 </div>
-            </div>
-        </section>
-
-        <section class="drawings-display-section">
-            <h2>Guest Messages</h2>
-            <p class="photo-subtitle" style="max-width: 400px;">Messages from our beloved guests</p>
-            <button onclick="clearAllMessages()" style="display: none; padding: 8px 20px; background: #e74c3c; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 12px; margin: 10px 0;" id="adminClearBtn">🗑️ Clear All (Admin)</button>
-            <div class="drawings-grid" id="drawingsGrid">
-                <!-- Guest messages will appear here automatically -->
-                <div class="no-messages">No messages yet. Be the first to share your wishes! 💕</div>
             </div>
         </section>
 
@@ -1145,36 +1112,91 @@
 
         function sendMessage() {
             const canvas = document.getElementById('drawingCanvas');
+            const textMessage = document.getElementById('textMessage').value.trim();
             const senderName = document.getElementById('senderName').value || 'Anonymous';
             
             // Check if canvas is empty
             const context = canvas.getContext('2d');
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             const pixels = imageData.data;
-            let isEmpty = true;
+            let canvasIsEmpty = true;
             
             for (let i = 0; i < pixels.length; i += 4) {
-                if (pixels[i + 3] !== 0) { // Check alpha channel
-                    isEmpty = false;
+                if (pixels[i + 3] !== 0) {
+                    canvasIsEmpty = false;
                     break;
                 }
             }
             
-            if (isEmpty) {
-                alert('⚠️ Please draw something first! الرجاء الرسم أولاً');
+            // Check if both canvas and text are empty
+            if (canvasIsEmpty && !textMessage) {
+                alert('⚠️ Please draw something or write a message!\nالرجاء الرسم أو كتابة رسالة!');
                 return;
             }
             
-            // Save drawing data
-            const drawingData = {
-                image: canvas.toDataURL(),
-                author: senderName,
-                timestamp: new Date().toISOString()
-            };
+            let messageData;
             
-            // Load existing drawings and add new one
+            // If there's a text message, create a canvas with the text
+            if (textMessage) {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 340;
+                tempCanvas.height = 300;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // Background
+                tempCtx.fillStyle = '#ffffff';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Text styling
+                tempCtx.fillStyle = '#3d4f5f';
+                tempCtx.font = '18px Poppins, sans-serif';
+                tempCtx.textAlign = 'center';
+                tempCtx.textBaseline = 'middle';
+                
+                // Word wrap
+                const words = textMessage.split(' ');
+                const lines = [];
+                let currentLine = '';
+                const maxWidth = 300;
+                
+                words.forEach(word => {
+                    const testLine = currentLine + word + ' ';
+                    const metrics = tempCtx.measureText(testLine);
+                    if (metrics.width > maxWidth && currentLine !== '') {
+                        lines.push(currentLine);
+                        currentLine = word + ' ';
+                    } else {
+                        currentLine = testLine;
+                    }
+                });
+                lines.push(currentLine);
+                
+                // Draw text
+                const lineHeight = 25;
+                const startY = (tempCanvas.height - (lines.length * lineHeight)) / 2;
+                lines.forEach((line, index) => {
+                    tempCtx.fillText(line, tempCanvas.width / 2, startY + (index * lineHeight));
+                });
+                
+                messageData = {
+                    image: tempCanvas.toDataURL(),
+                    author: senderName,
+                    timestamp: new Date().toISOString(),
+                    isText: true
+                };
+            } else {
+                // Use the drawing
+                messageData = {
+                    image: canvas.toDataURL(),
+                    author: senderName,
+                    timestamp: new Date().toISOString(),
+                    isText: false
+                };
+            }
+            
+            // Load existing messages and add new one
             const existingDrawings = JSON.parse(localStorage.getItem('engagementDrawings') || '[]');
-            existingDrawings.push(drawingData);
+            existingDrawings.push(messageData);
             
             // Store in localStorage
             localStorage.setItem('engagementDrawings', JSON.stringify(existingDrawings));
@@ -1183,12 +1205,13 @@
             // Update global drawings array
             drawings = existingDrawings;
             
-            // Display all drawings
+            // Display all messages
             displayDrawings();
             
             alert(`Thank you ${senderName}! Your message has been saved 💕\nشكراً! تم حفظ رسالتك`);
             clearCanvas();
             document.getElementById('senderName').value = '';
+            document.getElementById('textMessage').value = '';
         }
 
         function displayDrawings() {
@@ -1306,6 +1329,190 @@
             });
             observer.observe(invitationText);
         });
+    </script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+                apiKey: "AIzaSyDU2FpsdHhVdou5i-fFjvvSutnuYiOCYeU",
+                authDomain: "mohamedrawanengaged.firebaseapp.com",
+                databaseURL: "https://mohamedrawanengaged-default-rtdb.firebaseio.com",
+                projectId: "mohamedrawanengaged",
+                storageBucket: "mohamedrawanengaged.firebasestorage.app",
+                messagingSenderId: "269512753606",
+                appId: "1:269512753606:web:9948084afc3e3c716c72c7"
+            };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const messagesRef = database.ref('messages');
+
+        console.log('🔥 Firebase initialized!');
+
+        // Override the sendMessage function to use Firebase
+        const originalSendMessage = sendMessage;
+        sendMessage = function() {
+            const canvas = document.getElementById('drawingCanvas');
+            const textMessage = document.getElementById('textMessage').value.trim();
+            const senderName = document.getElementById('senderName').value || 'Anonymous';
+            
+            // Check if canvas is empty
+            const context = canvas.getContext('2d');
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            let canvasIsEmpty = true;
+            
+            for (let i = 0; i < pixels.length; i += 4) {
+                if (pixels[i + 3] !== 0) {
+                    canvasIsEmpty = false;
+                    break;
+                }
+            }
+            
+            // Check if both canvas and text are empty
+            if (canvasIsEmpty && !textMessage) {
+                alert('⚠️ Please draw something or write a message!\nالرجاء الرسم أو كتابة رسالة!');
+                return;
+            }
+            
+            let messageData;
+            
+            // If there's a text message, create a canvas with the text
+            if (textMessage) {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 340;
+                tempCanvas.height = 300;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // Background
+                tempCtx.fillStyle = '#ffffff';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Text styling
+                tempCtx.fillStyle = '#3d4f5f';
+                tempCtx.font = '18px Poppins, sans-serif';
+                tempCtx.textAlign = 'center';
+                tempCtx.textBaseline = 'middle';
+                
+                // Word wrap
+                const words = textMessage.split(' ');
+                const lines = [];
+                let currentLine = '';
+                const maxWidth = 300;
+                
+                words.forEach(word => {
+                    const testLine = currentLine + word + ' ';
+                    const metrics = tempCtx.measureText(testLine);
+                    if (metrics.width > maxWidth && currentLine !== '') {
+                        lines.push(currentLine);
+                        currentLine = word + ' ';
+                    } else {
+                        currentLine = testLine;
+                    }
+                });
+                lines.push(currentLine);
+                
+                // Draw text
+                const lineHeight = 25;
+                const startY = (tempCanvas.height - (lines.length * lineHeight)) / 2;
+                lines.forEach((line, index) => {
+                    tempCtx.fillText(line, tempCanvas.width / 2, startY + (index * lineHeight));
+                });
+                
+                messageData = {
+                    image: tempCanvas.toDataURL(),
+                    author: senderName,
+                    timestamp: Date.now(),
+                    isText: true
+                };
+            } else {
+                // Use the drawing
+                messageData = {
+                    image: canvas.toDataURL(),
+                    author: senderName,
+                    timestamp: Date.now(),
+                    isText: false
+                };
+            }
+            
+            // Save to Firebase instead of localStorage
+            messagesRef.push(messageData)
+                .then(() => {
+                    console.log('🔥 Message saved to Firebase!');
+                    alert(`Thank you ${senderName}! Your message has been saved 💕\nشكراً! تم حفظ رسالتك`);
+                    clearCanvas();
+                    document.getElementById('senderName').value = '';
+                    document.getElementById('textMessage').value = '';
+                })
+                .catch((error) => {
+                    console.error('❌ Error saving message:', error);
+                    alert('Error saving message. Please try again.');
+                });
+        };
+
+        // Override displayDrawings to load from Firebase
+        displayDrawings = function() {
+            const grid = document.getElementById('drawingsGrid');
+            
+            messagesRef.once('value')
+                .then((snapshot) => {
+                    const messages = [];
+                    snapshot.forEach((childSnapshot) => {
+                        messages.push(childSnapshot.val());
+                    });
+                    
+                    console.log('📊 عدد الرسائل من Firebase:', messages.length);
+                    
+                    if (messages.length === 0) {
+                        grid.innerHTML = '<div class="no-messages">No messages yet. Be the first to share your wishes! 💕</div>';
+                        return;
+                    }
+                    
+                    // Sort by timestamp (newest first)
+                    messages.sort((a, b) => b.timestamp - a.timestamp);
+                    
+                    // Display all messages
+                    grid.innerHTML = messages.map(drawing => `
+                        <div class="drawing-card">
+                            <img src="${drawing.image}" class="drawing-image" alt="Message from ${drawing.author}">
+                            <p class="drawing-author">${drawing.author}</p>
+                        </div>
+                    `).join('');
+                    
+                    console.log('✅ تم عرض', messages.length, 'رسالة من Firebase');
+                })
+                .catch((error) => {
+                    console.error('❌ Error loading messages:', error);
+                    grid.innerHTML = '<div class="no-messages">Error loading messages. Please refresh the page.</div>';
+                });
+        };
+
+        // Real-time listener for new messages
+        messagesRef.on('child_added', (snapshot) => {
+            console.log('🔔 New message added in real-time!');
+            displayDrawings(); // Refresh display
+        });
+
+        // Override clearAllMessages to use Firebase
+        clearAllMessages = function() {
+            if (confirm('⚠️ هل أنت متأكد من حذف جميع الرسائل؟\nAre you sure you want to delete all messages?')) {
+                messagesRef.remove()
+                    .then(() => {
+                        console.log('🗑️ تم مسح جميع الرسائل من Firebase');
+                        alert('✅ All messages cleared!');
+                        displayDrawings();
+                    })
+                    .catch((error) => {
+                        console.error('❌ Error clearing messages:', error);
+                        alert('Error clearing messages.');
+                    });
+            }
+        };
     </script>
 </body>
 </html>
