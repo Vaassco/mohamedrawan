@@ -165,25 +165,24 @@
             border-radius: 50%;
             background: linear-gradient(135deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
         }
-        .click-open {
-            margin-top: 0;
+        .click-open-btn {
+            margin-top: 30px;
+            padding: 12px 30px;
+            border: 1px solid rgba(61, 79, 95, 0.2);
+            border-radius: 50px;
+            background: white;
             font-family: 'Poppins', sans-serif;
-            font-size: 13px;
-            color: var(--primary);
+            font-size: 14px;
+            color: #000000;
             font-weight: 400;
-            letter-spacing: 2px;
-            opacity: 0.7;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(143, 164, 184, 0.15);
             transition: all 0.3s ease;
-            text-transform: uppercase;
-            animation: glow-pulse 2s ease-in-out infinite;
         }
-        @keyframes glow-pulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-        }
-        .click-open:hover {
-            opacity: 1;
-            color: #6b8599;
+        .click-open-btn:hover {
+            box-shadow: 0 4px 12px rgba(143, 164, 184, 0.25);
+            transform: translateY(-1px);
         }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
@@ -773,6 +772,27 @@
         .qr-code { width: 220px; margin: 0 auto 20px; }
         .qr-code img { width: 100%; height: auto; }
         .qr-text { font-size: 14px; color: var(--text-muted); }
+        .drive-link-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 24px;
+            border: 1px solid rgba(143, 164, 184, 0.3);
+            border-radius: 25px;
+            background: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            color: var(--text-dark);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(143, 164, 184, 0.1);
+        }
+        .drive-link-btn:hover {
+            box-shadow: 0 4px 12px rgba(143, 164, 184, 0.2);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
         .footer {
             padding: 100px 20px;
             text-align: center;
@@ -802,6 +822,73 @@
             z-index: -1;
         }
         .hero.hidden { display: none; }
+        
+        /* Thank You Modal */
+        .thank-you-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .thank-you-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(61, 79, 95, 0.3);
+        }
+        .modal-box {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 35px;
+            max-width: 350px;
+            width: 90%;
+            box-shadow: 0 15px 50px rgba(143, 164, 184, 0.25);
+            text-align: center;
+            z-index: 10001;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .thank-you-modal.show .modal-box {
+            transform: scale(1);
+        }
+        .modal-text {
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            color: var(--text-dark);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        .modal-close {
+            margin-top: 20px;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            background: var(--primary);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .modal-close:hover {
+            background: var(--primary-dark);
+        }
+        
         @media (max-width: 480px) { .names-title { font-size: 32px; } .couple-names { font-size: 38px; } .countdown-number { font-size: 36px; } .photo-frame { width: 250px; height: 300px; } }
     </style>
 </head>
@@ -828,7 +915,7 @@
             </div>
             <div class="wax-seal">M&R</div>
         </div>
-            <p class="click-open">Click to open invitation</p>
+            <button class="click-open-btn" onclick="openEnvelope()">👆 Click Here to Open Invitation 👆</button>
         </div>
     </section>
 
@@ -926,7 +1013,8 @@
             <p class="photo-subtitle">Upload your photos from the celebration so we can cherish these memories together</p>
             <div class="qr-container">
                 <div class="qr-code"><img src="qrcode.png" alt="QR Code - Scan Me"></div>
-                <p class="qr-text">Scan QR Code to Upload Your Photos</p>
+                <p class="qr-text">Scan QR Code to Upload Your Photos <br> Or Click the Button Below </p>
+                <a href="https://drive.google.com/drive/folders/1dYMEA-EdX02RDIKlNXcLjVyDRzOQQYBe" target="_blank" class="drive-link-btn">Upload Photos</a>
             </div>
         </section>
 
@@ -1034,6 +1122,17 @@
         }
         setInterval(updateCountdown, 1000);
         updateCountdown();
+        
+        // Thank You Modal Functions
+        function showThankYouModal() {
+            const modal = document.getElementById('thankYouModal');
+            modal.classList.add('show');
+        }
+        function closeThankYouModal() {
+            const modal = document.getElementById('thankYouModal');
+            modal.classList.remove('show');
+        }
+        
         function openEnvelope() {
             const envelope = document.querySelector('.envelope-container');
             const hero = document.getElementById('heroSection');
@@ -1208,7 +1307,7 @@
             // Display all messages
             displayDrawings();
             
-            alert(`Thank you ${senderName}! Your message has been saved 💕\nشكراً! تم حفظ رسالتك`);
+            showThankYouModal();
             clearCanvas();
             document.getElementById('senderName').value = '';
             document.getElementById('textMessage').value = '';
@@ -1216,6 +1315,11 @@
 
         function displayDrawings() {
             const grid = document.getElementById('drawingsGrid');
+            
+            // Check if grid element exists
+            if (!grid) {
+                return;
+            }
             
             // Load drawings from localStorage
             const storedDrawings = JSON.parse(localStorage.getItem('engagementDrawings') || '[]');
@@ -1444,7 +1548,7 @@
             messagesRef.push(messageData)
                 .then(() => {
                     console.log('🔥 Message saved to Firebase!');
-                    alert(`Thank you ${senderName}! Your message has been saved 💕\nشكراً! تم حفظ رسالتك`);
+                    showThankYouModal();
                     clearCanvas();
                     document.getElementById('senderName').value = '';
                     document.getElementById('textMessage').value = '';
@@ -1458,6 +1562,11 @@
         // Override displayDrawings to load from Firebase
         displayDrawings = function() {
             const grid = document.getElementById('drawingsGrid');
+            
+            // Check if grid element exists
+            if (!grid) {
+                return;
+            }
             
             messagesRef.once('value')
                 .then((snapshot) => {
@@ -1488,7 +1597,9 @@
                 })
                 .catch((error) => {
                     console.error('❌ Error loading messages:', error);
-                    grid.innerHTML = '<div class="no-messages">Error loading messages. Please refresh the page.</div>';
+                    if (grid) {
+                        grid.innerHTML = '<div class="no-messages">Error loading messages. Please refresh the page.</div>';
+                    }
                 });
         };
 
@@ -1514,5 +1625,14 @@
             }
         };
     </script>
+
+    <!-- Thank You Modal -->
+    <div id="thankYouModal" class="thank-you-modal">
+        <div class="modal-backdrop" onclick="closeThankYouModal()"></div>
+        <div class="modal-box">
+            <div class="modal-text">Thank you for your lovely message! 💗</div>
+            <button class="modal-close" onclick="closeThankYouModal()">Close</button>
+        </div>
+    </div>
 </body>
 </html>

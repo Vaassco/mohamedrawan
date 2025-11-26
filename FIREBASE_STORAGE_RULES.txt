@@ -1,0 +1,39 @@
+🔥 FIREBASE STORAGE RULES SETUP 🔥
+=====================================
+
+الخطوة 6: ضبط قواعد Firebase Storage
+=====================================
+
+1. اذهب إلى Firebase Console:
+   https://console.firebase.google.com/project/mohamedrawanengaged/storage
+
+2. اضغط على تبويب "Rules" (القواعد)
+
+3. استبدل القواعد الحالية بهذه القواعد:
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+4. اضغط "Publish" (نشر)
+
+5. تأكد من أن Storage مفعل:
+   - اذهب إلى Storage في القائمة الجانبية
+   - إذا لم يكن موجوداً، اضغط "Get Started"
+   - اختر "Start in test mode"
+   - اختر موقع (United States أو الأقرب)
+
+ملاحظات مهمة:
+==============
+- هذه القواعد تسمح لأي شخص بالقراءة والكتابة (مناسبة للاستخدام العام)
+- للاستخدام في الإنتاج، قد تحتاج قواعد أكثر أماناً
+- تأكد من تفعيل Storage قبل استخدام الموقع
+
+الآن النظام جاهز! 🎉
+
+
+
